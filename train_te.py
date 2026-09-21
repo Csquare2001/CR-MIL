@@ -2,7 +2,7 @@ from tqdm import tqdm
 
 from datasets import dataset_npy
 from torch.utils.data import DataLoader
-from models.C2_MIL import C2_MIL as create_model
+from models.CR_MIL import CR_MIL as create_model
 from torchnet import meter
 from utils import PatchCrossEntropyLoss,TripletLoss,Instance_CE, compute_L_CI, compute_L_NC, LabelSmoothingCrossEntropy
 from sklearn.metrics import roc_curve, auc, roc_auc_score
@@ -46,7 +46,7 @@ def train():
     torch.autograd.set_detect_anomaly(True)
     train_data_root = "data_1017/data_all"
     print("************************************************")
-    data_split_path="/data4/caochi/C2-MIL/data_1017/split_sel_1072_203_1"
+    data_split_path="/data4/caochi/CR-MIL/data_1017/data_split"
     data_split = ['12345','23451','34512','45123','51234']
     for i in range(0, 5):
         print("*****ROUND--{}*****".format(i))
@@ -58,7 +58,7 @@ def train():
         model=create_model()
         model = torch.nn.DataParallel(model, device_ids=device_ids).cuda()#must have decica[0],the main card
         print("model:",next(model.parameters()).device)
-        model_name="1016_mil_Evi_uncertainty_Casuality_fold5-4-3-2-1(cc2_final)_te_pub"
+        model_name="CR-MIL-final"
         print(model_name)
         epochs=100
         lrf=0.01; lr = 0.0001

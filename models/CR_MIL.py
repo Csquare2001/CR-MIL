@@ -157,9 +157,9 @@ class GraphConvolution(nn.Module):
 
 
 
-class C2_MIL(nn.Module):  #
+class CR_MIL(nn.Module):  #
     def __init__(self):
-        super(C2_MIL, self).__init__()
+        super(CR_MIL, self).__init__()
         self.conv_pre = patch_cnn()#[B,196,768]
         #self.conv_pre = cnn_pre()
         self.msa = msa_197_768()
@@ -185,12 +185,12 @@ class C2_MIL(nn.Module):  #
         x_mil_fea = x_msa[:, 1:, :]  # B*196*768
         x_cla_fea = self.linear(x_cla_fea)#B*128
 
-        # IPC
+        # IPR
         evidence = self.evidence_classifier(x_mil_fea)
         dirichlet_params = self.calculate_dirichlet_params(evidence)
         instance_pred, uncertainty = self.calculate_belief_and_uncertainty(dirichlet_params)
 
-        # BCE
+        # CBE
         CauScore, topk_indices, F_c, F_nc = self.causality_score_module(x_mil_fea)
         if x.shape[0] == 1:
             F_c = self.emb_layer(F_c).squeeze().unsqueeze(0)
@@ -220,7 +220,7 @@ class C2_MIL(nn.Module):  #
 if __name__ == "__main__":
     a=torch.randn(4,196,16,16)
     label = torch.randn(4,196)
-    model = C2_MIL()
+    model = CR_MIL()
     model.train()
     total_num = sum(p.numel() for p in model.parameters())
     instance_pred, uncertainty, CauScore, topk_indices, F_c, F_nc, bag_pred = model(a,label)

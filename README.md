@@ -1,5 +1,5 @@
-## Calibrated causal multiple instance learning for computed tomography-based mutation prediction in lung cancer
-A preliminary implementation of C²-MIL.
+## Confounding-aware rectified weakly supervised learning for EGFR genotyping via tumor CT images
+A preliminary implementation of CR-MIL.
 
 
 # 1. Environmental Requirements
@@ -14,7 +14,7 @@ To run the codes, the following dependencies are required:
 
 # 2. File Descriptions
 ```plaintext
-└── C2-MIL/  
+└── CR-MIL/  
       ├── train_te.py                  # Code for model training and testing
       ├── datasets.py                  # Dataset loading  
       ├── utils.py                     # Some supporting functions
