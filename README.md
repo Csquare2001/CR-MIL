@@ -59,7 +59,6 @@ The default training configuration is:
 | Epochs | 100 |
 | Learning rate | 0.0001 |
 | Optimizer | Adam |
-| Momentum | 0.9 |
 | Number of task-relevant patches | 75 |
 
 The code performs five-fold training using the following split settings:
