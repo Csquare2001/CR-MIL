@@ -100,7 +100,7 @@ class MIL_embedding(nn.Module):  # input B*196*768
     def forward(self, x):
         return self.MIL_Prep1(x) *self.MIL_Prep2(x) 
 
-
+ 
 class CausalityScoreModule(nn.Module):
     def __init__(self, input_dim, k):
         super(CausalityScoreModule, self).__init__()
