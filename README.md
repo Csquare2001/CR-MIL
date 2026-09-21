@@ -1,5 +1,7 @@
+<<<<<<< HEAD
 ## Confounding-aware rectified weakly supervised learning for EGFR genotyping via tumor CT images
 A preliminary implementation of CR-MIL.
+
 
 
 # 1. Environmental Requirements
