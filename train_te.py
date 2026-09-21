@@ -4,7 +4,7 @@ from datasets import dataset_npy
 from torch.utils.data import DataLoader
 from models.CR_MIL import CR_MIL as create_model
 from torchnet import meter
-from utils import PatchCrossEntropyLoss,TripletLoss,Instance_CE, compute_L_CI, compute_L_NC, LabelSmoothingCrossEntropy
+from utils import PatchCrossEntropyLoss,TripletLoss,Instance_CE, compute_L_PIC, compute_L_CRC, LabelSmoothingCrossEntropy
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 import torch
 import sys
@@ -14,6 +14,7 @@ import numpy as np
 import random
 import os
 import torch.nn.functional as F
+
 sys.path.append("model")
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 device = torch.device('cuda:0'); device_ids = [0]
@@ -36,17 +37,17 @@ loss_kl = torch.nn.KLDivLoss(size_average = False)
 log_sm = torch.nn.LogSoftmax(dim = 1)
 adversarial_loss = torch.nn.BCELoss()
 loss_mse = torch.nn.MSELoss()
-loss_NC = compute_L_NC()
-loss_CI = compute_L_CI()
+loss_CRC = compute_L_CRC()
+loss_PIC = compute_L_PIC()
 weight= 1
 
 
 
 def train():
     torch.autograd.set_detect_anomaly(True)
-    train_data_root = "data_1017/data_all"
+    train_data_root = "data/data_all"
     print("************************************************")
-    data_split_path="/data4/caochi/CR-MIL/data_1017/data_split"
+    data_split_path="data/split_all"
     data_split = ['12345','23451','34512','45123','51234']
     for i in range(0, 5):
         print("*****ROUND--{}*****".format(i))
@@ -63,7 +64,7 @@ def train():
         epochs=100
         lrf=0.01; lr = 0.0001
         pg = [p for p in model.parameters() if p.requires_grad]
-        optimizer = torch.optim.SGD(pg, lr=lr, momentum=0.9, weight_decay=5E-5)
+        optimizer = torch.optim.Adam(pg, lr=lr, weight_decay=5E-5)
         lf = lambda x: ((1 + math.cos(x * math.pi / epochs)) / 2) * (1 - lrf) + lrf  # cosine
         scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
 
@@ -109,7 +110,7 @@ def train():
                 label = torch.LongTensor(label).to(device)
 
                 ### model output
-                instance_pred, uncertainty, CauScore, topk_indices, F_c, F_nc, bag_pred = model(data)
+                instance_pred, uncertainty, ConScore, topk_indices, F_c, F_nc, bag_pred = model(data)
                 # print(instance_pred.shape)
                 instance_pred = torch.softmax(instance_pred, dim=-1)
                 pseudo_label = instance_pred[:, :, 1]
@@ -123,10 +124,10 @@ def train():
                 # loss_cls = loss_lsce(cls_token, label)
 
                 # print(F_nc.shape, label.shape)
-                loss_nc = loss_NC(F_nc, label, model.module.bag_classification)
-                loss_ci = loss_CI(F_c, F_nc, model.module.fusion_layer, model.module.bag_classification)
+                loss_crc = loss_CRC(F_nc, label, model.module.bag_classification)
+                loss_pic = loss_PIC(F_c, F_nc, model.module.fusion_layer, model.module.bag_classification)
 
-                loss = loss_bag + 0.8 * loss_instance + 0.5 * loss_nc + 0.6 * loss_ci
+                loss = loss_bag + 0.8 * loss_instance + 0.5 * loss_crc + 0.6 * loss_pic
 
                 optimizer.zero_grad()
 
@@ -217,10 +218,7 @@ def train():
 
 @torch.no_grad()
 def val(model, data):
-    """
-    计算模型在验证集上的准确率等信息
-    return: 分割损失，重分割损失，重建损失，一致性损失
-    """
+
 
     dataloader = DataLoader(data, 3, shuffle=False, num_workers=2)
     print(len(data))

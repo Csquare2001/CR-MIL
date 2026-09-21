@@ -10,18 +10,7 @@ import torch.nn as nn
 from models.relative_position_encoding import RelativePositionBias
 
 def drop_path(x, drop_prob: float = 0., training: bool = False):
-    """
-    Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
-    This is the same as the DropConnect impl I created for EfficientNet, etc networks, however,
-    the original name is misleading as 'Drop Connect' is a different form of dropout in a separate paper...
-    See discussion: https://github.com/tensorflow/tpu/issues/494#issuecomment-532968956 ... I've opted for
-    changing the layer and argument names to 'drop path' rather than mix DropConnect as a layer name and use
-    'survival rate' as the argument.
-    原来的名字是误导的，因为‘DROP连接’是另一种形式的辍学在一份附属论文.参见讨论：https://github.com/tensonflow/tpu/issues/494#issuecomment-532968956.
-    我选择了
-    将图层和参数名称更改为“放置路径”，而不是将 DropConnect 混合为图层名称并使用 “存活率”作为论据。
 
-    """
     if drop_prob == 0. or not training:
         return x
     keep_prob = 1 - drop_prob
@@ -46,7 +35,7 @@ class DropPath(nn.Module):
 
 class Attention(nn.Module):
     def __init__(self,
-                 dim,  # 输入token的dim 这里是768
+                 dim,  
                  num_heads=12,
                  qkv_bias=False,
                  qk_scale=None,
@@ -54,9 +43,9 @@ class Attention(nn.Module):
                  proj_drop_ratio=0.):
         super(Attention, self).__init__()
         self.num_heads = num_heads
-        head_dim = dim // num_heads  # 每一个head对应的qkv的维度 v，64
-        self.scale = qk_scale or head_dim ** -0.5  # 根号dk
-        self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)  # 197*768变成197*（768*3）
+        head_dim = dim // num_heads  
+        self.scale = qk_scale or head_dim ** -0.5  
+        self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)  
         self.attn_drop = nn.Dropout(attn_drop_ratio)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop_ratio)
@@ -91,8 +80,8 @@ class Attention(nn.Module):
         # @: multiply -> [batch_size, num_heads, num_patches + 1, embed_dim_per_head]
         # transpose: -> [batch_size, num_patches + 1, num_heads, embed_dim_per_head]
         # reshape: -> [batch_size, num_patches + 1, total_embed_dim]
-        x = (attn @ v).transpose(1, 2).reshape(B, N, C)  # B*8*197*96->B*197*768
-        x = self.proj(x)  # B*197*768变成B*197*768，线性层改变最后一维的维度
+        x = (attn @ v).transpose(1, 2).reshape(B, N, C)  
+        x = self.proj(x) 
         x = self.proj_drop(x)
         return x
 
@@ -120,11 +109,11 @@ class Mlp(nn.Module):
         return x
 
 
-class Block(nn.Module):#一个编码器模块
+class Block(nn.Module):
     def __init__(self,
                  dim,
                  num_heads,
-                 mlp_ratio=4.,#第一个全连接层是输入节点个数的4倍
+                 mlp_ratio=4.,
                  qkv_bias=False,
                  qk_scale=None,
                  drop_ratio=0.,
@@ -157,23 +146,22 @@ class VisionTransformer(nn.Module):
         super(VisionTransformer, self).__init__()
         self.num_tokens=1
         norm_layer = norm_layer or partial(nn.LayerNorm, eps=1e-6)
-        act_layer = act_layer or nn.GELU#默认GELU
+        act_layer = act_layer or nn.GELU
 
         #self.patch_embed = embed_layer(img_size=img_size, patch_size=patch_size, in_c=in_c, embed_dim=embed_dim)
         num_patches = 196
 
-        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))#第一个1为batch维度，方便拼接，后面（1，768）就是一维向，可训练参数
-
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + self.num_tokens, embed_dim))#1*197*768
         self.pos_drop = nn.Dropout(p=drop_ratio)
 
-        dpr = [x.item() for x in torch.linspace(0, drop_path_ratio, depth)]  # 每一个编码器模块的drop_path_ratio是递增的，
+        dpr = [x.item() for x in torch.linspace(0, drop_path_ratio, depth)]  
         self.blocks = nn.Sequential(*[
             Block(dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, qk_scale=qk_scale,
                   drop_ratio=drop_ratio, attn_drop_ratio=attn_drop_ratio, drop_path_ratio=dpr[i],
                   norm_layer=norm_layer, act_layer=act_layer)
             for i in range(depth)
-        ])#12个编码器模块搭建
+        ])
         self.norm = norm_layer(embed_dim)
 
         # Weight init

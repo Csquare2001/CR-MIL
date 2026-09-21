@@ -67,13 +67,13 @@ class Instance_CE(nn.Module):
         return loss_student
 
 
-class compute_L_NC(nn.Module):
+class compute_L_CRC(nn.Module):
     def __init__(self):
-        super(compute_L_NC, self).__init__()
+        super(compute_L_CRC, self).__init__()
     
     def forward(self, F_nc, bag_labels, classifier_B):
         """
-        Compute the NC loss.
+        Compute the CRC loss.
 
         Args:
             F_nc: [B, 1, d]
@@ -113,14 +113,14 @@ def scm(sx1, sx2, k):
     ss2 = torch.mean(torch.pow(sx2, k), 0)
     return matchnorm(ss1, ss2)
 
-class compute_L_CI(nn.Module):
+class compute_L_PIC(nn.Module):
     def __init__(self):
-        super(compute_L_CI, self).__init__()
+        super(compute_L_PIC, self).__init__()
         self.loss_mse = nn.MSELoss()
 
     def forward(self, F_c, F_nc, fusion_layer, classifier_B, k_moments=5):
         """
-        Compute the CI loss.
+        Compute the PIC loss.
 
         Args:
             F_c: Causal features [B, d]

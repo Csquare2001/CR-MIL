@@ -101,9 +101,9 @@ class MIL_embedding(nn.Module):  # input B*196*768
         return self.MIL_Prep1(x) *self.MIL_Prep2(x) 
 
  
-class CausalityScoreModule(nn.Module):
+class ContributionScoreModule(nn.Module):
     def __init__(self, input_dim, k):
-        super(CausalityScoreModule, self).__init__()
+        super(ContributionScoreModule, self).__init__()
         self.k = k
         self.gcn_layer = GraphConvolution(input_dim, 1) 
 
@@ -168,7 +168,7 @@ class CR_MIL(nn.Module):  #
             torch.nn.ReLU(inplace=True),)
         self.evidence_classifier = EvidenceClassifier()
         self.emb_layer = MIL_embedding()
-        self.causality_score_module = CausalityScoreModule(768, 50)
+        self.contribution_score_module = ContributionScoreModule(768,75)
         self.fusion_layer = torch.nn.Linear(256, 128)
         self.bag_classification = nn.Sequential(
             nn.Linear(128, 64),
@@ -191,7 +191,7 @@ class CR_MIL(nn.Module):  #
         instance_pred, uncertainty = self.calculate_belief_and_uncertainty(dirichlet_params)
 
         # CBE
-        CauScore, topk_indices, F_c, F_nc = self.causality_score_module(x_mil_fea)
+        ConScore, topk_indices, F_c, F_nc = self.contribution_score_module(x_mil_fea)
         if x.shape[0] == 1:
             F_c = self.emb_layer(F_c).squeeze().unsqueeze(0)
             F_nc = self.emb_layer(F_nc).squeeze().unsqueeze(0)
@@ -201,7 +201,7 @@ class CR_MIL(nn.Module):  #
         bag_pred = self.bag_classification((x_cla_fea + F_c)/2)
         # cls_token = self.bag_classification(x_cla_fea)
 
-        return instance_pred, uncertainty, CauScore, topk_indices, F_c, F_nc, bag_pred
+        return instance_pred, uncertainty, ConScore, topk_indices, F_c, F_nc, bag_pred
 
     def get_fea(self):
         return self.x0
@@ -223,5 +223,5 @@ if __name__ == "__main__":
     model = CR_MIL()
     model.train()
     total_num = sum(p.numel() for p in model.parameters())
-    instance_pred, uncertainty, CauScore, topk_indices, F_c, F_nc, bag_pred = model(a,label)
+    instance_pred, uncertainty, ConScore, topk_indices, F_c, F_nc, bag_pred = model(a,label)
     print(bag_pred)

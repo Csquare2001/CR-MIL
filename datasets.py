@@ -8,10 +8,10 @@ from torch.utils.data import DataLoader
 
 import random
 
-path1 = 'data_1017/'
-test1_path = 'data_1017/'
-test2_path = 'data_1017/'
-test3_path = 'data_1017/'
+path1 = 'data/'
+test1_path = 'data/'
+test2_path = 'data/'
+test3_path = 'data/'
 random.seed(41)
 
 
@@ -43,12 +43,12 @@ class dataset_npy(data.Dataset):
         val_keys = list(np.load(data_split_path + '/fold_' + data_split[4] + '.npy'))
         test1_keys = list(np.load(test1_path  + '/fold_pub_140.npy',allow_pickle=True))
         # test2_keys = list(np.load(test2_path + '/fold_ay_243.npy', allow_pickle=True))
-        test3_keys = list(np.load(test3_path + '/fold_fy_112.npy', allow_pickle=True))
+        test3_keys = list(np.load(test3_path + '/fold_fy_82.npy', allow_pickle=True))
 
 
 
 
-        clinical_data = np.array(pd.read_csv(path1 + 'label_1334.csv', encoding="GB2312"))
+        clinical_data = np.array(pd.read_csv(path1 + 'label.csv', encoding="GB2312"))
 
         pat_name = clinical_data[:, 0].tolist()#标签
         label = clinical_data[:, 1].tolist()  # 标签
@@ -113,7 +113,7 @@ class dataset_npy(data.Dataset):
         #对整个图片切块
         patch_num = 14
         patch_size = 224 // patch_num
-        patch_data = np.zeros((1, patch_size, patch_size))  # 存放切割后的patch
+        patch_data = np.zeros((1, patch_size, patch_size))  
         for i in range(patch_num):
             for j in range(patch_num):
                 if (i == patch_num - 1 and j == patch_num - 1):
@@ -138,7 +138,7 @@ class dataset_npy(data.Dataset):
 
         data = np.load(img_path)
         data = np.clip(data, -1000, 400)
-        data = (data + 1000) / (1000 + 400)#数据0~1
+        data = (data + 1000) / (1000 + 400)
         data = data[np.newaxis, ...] # add a dim eg.(224,) --> (1,224)
         patch_data,  patch_labels = self._create_patches_and_labels(data, label)
         # print(patch_data.shape, patch_labels.shape)
@@ -162,8 +162,8 @@ class dataset_npy(data.Dataset):
         # print("New patch labels set.")
 
 if __name__ == '__main__':
-    train_data_root = "data_1017/data_all"
-    data_split_path="data_1017/split_xk_all"
+    train_data_root = "data/data_all"
+    data_split_path="data/split_all"
     data_split='12345'
     print("************************************************")
 
