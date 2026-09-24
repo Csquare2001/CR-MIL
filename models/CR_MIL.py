@@ -111,7 +111,7 @@ class ContributionScoreModule(nn.Module):
         B, N, _ = X_i.shape
         A = torch.stack([self.build_adjacency_matrix(x_i) for x_i in X_i])
         S_i = self.gcn_layer(X_i, A).squeeze(-1)
-
+        S_i = S_i.cpu() 
         F_i_re = [] 
         F_i_nc = [] 
         topk_indices = []
@@ -121,7 +121,7 @@ class ContributionScoreModule(nn.Module):
             x = X_i[i]  # [N, D]
 
             topk_idx = torch.topk(scores, self.k, dim=0)[1]  #[k]
-            mask = torch.ones(N, dtype=torch.bool)
+            mask = torch.ones(N, dtype=torch.bool, device=scores.device)
             mask[topk_idx] = False
             non_topk_idx = torch.arange(N)[mask]  # [N-k]
 
@@ -129,7 +129,7 @@ class ContributionScoreModule(nn.Module):
             F_i_co.append(x[non_topk_idx])  # [N-k, D]
             topk_indices.append(topk_idx)
 
-        topk_indices = torch.stack(F_i_re, dim=0)
+        topk_indices = torch.stack(topk_indices, dim=0)
         F_i_re = torch.stack(F_i_re, dim=0)
         F_i_co = torch.stack(F_i_co, dim=0)
 

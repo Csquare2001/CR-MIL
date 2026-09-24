@@ -112,11 +112,11 @@ def train():
                 ### model output
                 instance_pred, uncertainty, ConScore, topk_indices, F_re, F_co, bag_pred = model(data)
                 # print(instance_pred.shape)
-                instance_pred = torch.softmax(instance_pred, dim=-1)
-                pseudo_label = instance_pred[:, :, 1]
+                belief = instance_pred  
+                pseudo_label = belief[..., 1]
 
                 all_predictions.append(pseudo_label.cpu())
-                Lce = loss_ce(instance_pred[:, :, 1], patch_label.to(device))
+                Lce = loss_ce(belief, patch_label.to(device))
                 loss_instance = torch.mean(torch.exp(-uncertainty)*Lce)
 
                 #################################################################################################
