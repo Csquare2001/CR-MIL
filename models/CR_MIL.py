@@ -184,7 +184,7 @@ class CR_MIL(nn.Module):  #
         x_cla_fea = x_msa[:, 0, :]  # B*768
         x_mil_fea = x_msa[:, 1:, :]  # B*196*768
         x_cla_fea = self.linear(x_cla_fea)#B*128
-
+ 
         # IPR
         evidence = self.evidence_classifier(x_mil_fea)
         dirichlet_params = self.calculate_dirichlet_params(evidence)
