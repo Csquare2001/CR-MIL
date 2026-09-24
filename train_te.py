@@ -266,8 +266,8 @@ def val(model, data):
     false_name = np.array(false_name)
     cm_value = confusion_matrix.value()
     accuracy =  (cm_value[0][0] + cm_value[1][1]) / (cm_value.sum()+1e-8)
-    sens_c = cm_value[0][0] / (cm_value[0][0] + cm_value[0][1]+1e-8)
-    spec_c = cm_value[1][1] / (cm_value[1][1] + cm_value[1][0]+1e-8)
+    spec_c = cm_value[0][0] / (cm_value[0][0] + cm_value[0][1] + 1e-8)
+    sens_c = cm_value[1][1] / (cm_value[1][1] + cm_value[1][0] + 1e-8)
     if np.isnan(score).any() or np.isinf(score).any():
         score = np.nan_to_num(score)
     AUC = roc_auc_score(lab, score)
