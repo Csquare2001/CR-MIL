@@ -113,7 +113,7 @@ class ContributionScoreModule(nn.Module):
         S_i = self.gcn_layer(X_i, A).squeeze(-1)
         S_i = S_i.cpu() 
         F_i_re = [] 
-        F_i_nc = [] 
+        F_i_co = [] 
         topk_indices = []
 
         for i in range(B):
