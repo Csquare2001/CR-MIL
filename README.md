@@ -32,7 +32,7 @@ CR-MIL/
 
 - `train_te.py`: Model training, validation, testing, and result saving.
 - `datasets.py`: Dataset loading, CT normalization, patch extraction, and data splitting.
-- `utils.py`: Loss functions and causal/non-causal constraints.
+- `utils.py`: Loss functions.
 - `models/CR_MIL.py`: Main CR-MIL model implementation.
 - `models/MSA_relative_instance_input.py`: Vision Transformer and attention modules.
 - `models/relative_position_encoding.py`: Relative position encoding implementation.
