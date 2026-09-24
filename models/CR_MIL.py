@@ -112,7 +112,7 @@ class ContributionScoreModule(nn.Module):
         A = torch.stack([self.build_adjacency_matrix(x_i) for x_i in X_i])
         S_i = self.gcn_layer(X_i, A).squeeze(-1)
 
-        F_i_c = [] 
+        F_i_re = [] 
         F_i_nc = [] 
         topk_indices = []
 
@@ -125,15 +125,15 @@ class ContributionScoreModule(nn.Module):
             mask[topk_idx] = False
             non_topk_idx = torch.arange(N)[mask]  # [N-k]
 
-            F_i_c.append(x[topk_idx])  # [k, D]
-            F_i_nc.append(x[non_topk_idx])  # [N-k, D]
+            F_i_re.append(x[topk_idx])  # [k, D]
+            F_i_co.append(x[non_topk_idx])  # [N-k, D]
             topk_indices.append(topk_idx)
 
-        topk_indices = torch.stack(F_i_c, dim=0)
-        F_i_c = torch.stack(F_i_c, dim=0)
-        F_i_nc = torch.stack(F_i_nc, dim=0)
+        topk_indices = torch.stack(F_i_re, dim=0)
+        F_i_re = torch.stack(F_i_re, dim=0)
+        F_i_co = torch.stack(F_i_co, dim=0)
 
-        return S_i, topk_indices, F_i_c.mean(dim=1, keepdim=True), F_i_nc.mean(dim=1, keepdim=True)
+        return S_i, topk_indices, F_i_re.mean(dim=1, keepdim=True), F_i_co.mean(dim=1, keepdim=True)
 
     def build_adjacency_matrix(self, X):
         X_centered = X - X.mean(dim=0)
@@ -191,17 +191,17 @@ class CR_MIL(nn.Module):  #
         instance_pred, uncertainty = self.calculate_belief_and_uncertainty(dirichlet_params)
 
         # CBE
-        ConScore, topk_indices, F_c, F_nc = self.contribution_score_module(x_mil_fea)
+        ConScore, topk_indices, F_re, F_co = self.contribution_score_module(x_mil_fea)
         if x.shape[0] == 1:
-            F_c = self.emb_layer(F_c).squeeze().unsqueeze(0)
-            F_nc = self.emb_layer(F_nc).squeeze().unsqueeze(0)
+            F_re = self.emb_layer(F_re).squeeze().unsqueeze(0)
+            F_co = self.emb_layer(F_co).squeeze().unsqueeze(0)
         else:
-            F_c = self.emb_layer(F_c).squeeze()
-            F_nc = self.emb_layer(F_nc).squeeze()
-        bag_pred = self.bag_classification((x_cla_fea + F_c)/2)
+            F_re = self.emb_layer(F_re).squeeze()
+            F_co = self.emb_layer(F_co).squeeze()
+        bag_pred = self.bag_classification((x_cla_fea + F_re)/2)
         # cls_token = self.bag_classification(x_cla_fea)
 
-        return instance_pred, uncertainty, ConScore, topk_indices, F_c, F_nc, bag_pred
+        return instance_pred, uncertainty, ConScore, topk_indices, F_re, F_co, bag_pred
 
     def get_fea(self):
         return self.x0
@@ -223,5 +223,5 @@ if __name__ == "__main__":
     model = CR_MIL()
     model.train()
     total_num = sum(p.numel() for p in model.parameters())
-    instance_pred, uncertainty, ConScore, topk_indices, F_c, F_nc, bag_pred = model(a,label)
+    instance_pred, uncertainty, ConScore, topk_indices, F_re, F_co, bag_pred = model(a,label)
     print(bag_pred)

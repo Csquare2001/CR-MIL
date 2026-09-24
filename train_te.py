@@ -110,7 +110,7 @@ def train():
                 label = torch.LongTensor(label).to(device)
 
                 ### model output
-                instance_pred, uncertainty, ConScore, topk_indices, F_c, F_nc, bag_pred = model(data)
+                instance_pred, uncertainty, ConScore, topk_indices, F_re, F_co, bag_pred = model(data)
                 # print(instance_pred.shape)
                 instance_pred = torch.softmax(instance_pred, dim=-1)
                 pseudo_label = instance_pred[:, :, 1]
@@ -124,8 +124,8 @@ def train():
                 # loss_cls = loss_lsce(cls_token, label)
 
                 # print(F_nc.shape, label.shape)
-                loss_crc = loss_CRC(F_nc, label, model.module.bag_classification)
-                loss_pic = loss_PIC(F_c, F_nc, model.module.fusion_layer, model.module.bag_classification)
+                loss_crc = loss_CRC(F_co, label, model.module.bag_classification)
+                loss_pic = loss_PIC(F_re, F_co, model.module.fusion_layer, model.module.bag_classification)
 
                 loss = loss_bag + 0.8 * loss_instance + 0.5 * loss_crc + 0.6 * loss_pic
 
